@@ -1,13 +1,11 @@
 /**
- * Niko Bathrooms Enhanced Mapbox Integration - FIXED FOR YOUR HTML
- * Version: 18 - CORRECTED h3 to h5 tag issue
- * Features: Fixed to work with your exact HTML structure
+ * Niko Bathrooms Mapbox Integration - WORKING VERSION
+ * Fixed: Popup positioning, active states, first click navigation, First click centering
  */
 
 (function() {
     'use strict';
     
-    // Niko Bathrooms Configuration
     const CONFIG = {
         mapbox: {
             accessToken: "pk.eyJ1IjoiamVyb3BzIiwiYSI6ImNsbnVvbm8yajBqbGkycW5zaDBycjU1dWYifQ.IeXQv2RkJodqAQW8iG6LcA",
@@ -43,7 +41,6 @@
         }
     };
 
-    // State management
     const state = {
         initialized: false,
         mapLoaded: false,
@@ -53,15 +50,14 @@
         stores: { type: "FeatureCollection", features: [] },
         elements: {
             locationItemSidebar: [],
-            outerCardWrapper: null,     // .map_locations-card_wrapper
-            innerCardWrapper: null,     // .locations-map-card-wrapper  
-            locationMapCardWrapper: null, // Keep for compatibility
+            outerCardWrapper: null,
+            innerCardWrapper: null,
+            locationMapCardWrapper: null,
             locationMapCardItem: [],
             locationMapCardCloseBtn: []
         }
     };
 
-    // Utility functions
     const utils = {
         debounce: function(func, wait) {
             let timeout;
@@ -162,7 +158,6 @@
         }
     };
 
-    // Enhanced error handling
     const errorHandler = {
         handleMapboxError: function(error) {
             utils.log('error', 'Mapbox error occurred', error);
@@ -216,7 +211,6 @@
         }
     };
 
-    // Enhanced geolocation manager
     const geolocationManager = {
         getCurrentPosition: function() {
             return new Promise((resolve, reject) => {
@@ -269,7 +263,6 @@
         }
     };
 
-    // Enhanced map manager with Niko branding
     const mapManager = {
         map: null,
 
@@ -366,10 +359,8 @@
             try {
                 this.ensureResponsive();
                 
-                // Load location data first
                 dataManager.loadLocationData();
                 
-                // THEN force hide everything after DOM elements are found
                 uiManager.hideAllCards();
                 uiManager.hideCardWrapper();
                 
@@ -379,7 +370,11 @@
                 }
                 
                 this.setupInteractions();
-                this.startFastAnimationSequence();
+                
+                setTimeout(() => {
+                    this.startFastAnimationSequence();
+                }, 1000);
+                
                 this.setupResponsiveHandling();
 
             } catch (error) {
@@ -388,7 +383,6 @@
         },
 
         addNikoBrandedLayers: function() {
-            // Add Niko branded glow effect layer
             this.map.addLayer({
                 id: "locations-glow",
                 type: "circle",
@@ -407,7 +401,6 @@
                 }
             });
 
-            // Add main Niko branded points layer
             this.map.addLayer({
                 id: "locations",
                 type: "circle",
@@ -428,7 +421,6 @@
                 }
             });
 
-            // Add hover effect layer
             this.map.addLayer({
                 id: "locations-hover",
                 type: "circle",
@@ -456,19 +448,15 @@
                 return;
             }
 
-            // ENHANCED: Ensure map interactions work
             this.map.on('click', 'locations', (e) => {
                 e.preventDefault();
                 utils.log('info', 'Map location clicked - event triggered');
                 this.handleLocationClick(e);
             });
 
-            // ENHANCED: Better hover effects
             this.map.on('mouseenter', 'locations', (e) => {
                 this.map.getCanvas().style.cursor = 'pointer';
-                utils.log('info', 'Mouse entered location');
                 
-                // Add hover effect
                 if (e.features.length > 0) {
                     this.map.getSource('locations-hover').setData({
                         type: "FeatureCollection",
@@ -479,35 +467,31 @@
 
             this.map.on('mouseleave', 'locations', () => {
                 this.map.getCanvas().style.cursor = '';
-                utils.log('info', 'Mouse left location');
                 
-                // Remove hover effect
                 this.map.getSource('locations-hover').setData({
                     type: "FeatureCollection",
                     features: []
                 });
             });
 
-            // FORCE: Enable map interactions
             this.map.dragPan.enable();
             this.map.scrollZoom.enable();
             this.map.doubleClickZoom.enable();
 
             utils.log('info', 'Niko Bathrooms map interactions setup complete');
-            
-            // DEBUG: Test if layers exist
-            setTimeout(() => {
-                const layers = this.map.getStyle().layers;
-                const locationLayer = layers.find(l => l.id === 'locations');
-                utils.log('info', 'Location layer exists:', !!locationLayer);
-                if (locationLayer) {
-                    utils.log('info', 'Location layer details:', locationLayer);
-                }
-            }, 1000);
         },
 
         handleLocationClick: function(e) {
             try {
+                // Wait for map to be ready before processing map click
+                if (!state.mapLoaded || !state.animationComplete) {
+                    utils.log('info', 'Map not ready for map click, waiting...');
+                    setTimeout(() => {
+                        this.handleLocationClick(e); // Re-attempt after delay
+                    }, 500); // Wait 500ms and retry
+                    return;
+                }
+
                 const feature = e.features[0];
                 const locationID = feature.properties.id;
                 const coordinates = feature.geometry.coordinates;
@@ -527,21 +511,26 @@
         zoomToLocation: function(coordinates, shouldCenter = true) {
             if (!this.map || !coordinates) return;
 
-            let center = coordinates;
-            
-            if (shouldCenter && window.innerWidth > 768) {
-                const offsetLng = (this.map.getBounds().getEast() - this.map.getBounds().getWest()) * 0.1;
-                center = [coordinates[0] - offsetLng, coordinates[1]];
-            }
-
-            this.map.flyTo({
-                center: center,
+            const flyToOptions = {
+                center: coordinates, // Always target the actual coordinates
                 zoom: 13,
                 speed: 1.5,
                 curve: 1.2,
                 essential: true
-            });
+            };
+
+            // Apply an offset if shouldCenter is true and screen width is greater than 768px
+            // This shifts the map's center to account for the sidebar/card on the right.
+            // The card has a max-width of 360px, so we offset by half of that to center the point
+            // in the remaining visible map area.
+            if (shouldCenter && window.innerWidth > 768) {
+                const cardWidthPx = 360; // Max width of the card as defined in displayCard
+                flyToOptions.offset = [-cardWidthPx / 2, 0]; // Shift left by half the card's width
+            }
+
+            this.map.flyTo(flyToOptions);
         },
+
 
         startFastAnimationSequence: function() {
             utils.log('info', 'Starting Niko Bathrooms animation sequence');
@@ -581,12 +570,7 @@
                     duration: CONFIG.animation.zoomDuration,
                     curve: CONFIG.animation.zoomCurve,
                     speed: CONFIG.animation.zoomSpeed,
-                    essential: true,
-                    easing: (t) => {
-                        return t < 0.5 
-                            ? 4 * t * t * t
-                            : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                    }
+                    essential: true
                 });
                 
                 setTimeout(() => {
@@ -609,12 +593,7 @@
                     duration: CONFIG.animation.zoomDuration,
                     curve: CONFIG.animation.zoomCurve,
                     speed: CONFIG.animation.zoomSpeed,
-                    essential: true,
-                    easing: (t) => {
-                        return t < 0.5 
-                            ? 4 * t * t * t
-                            : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                    }
+                    essential: true
                 });
                 
                 setTimeout(() => {
@@ -646,32 +625,6 @@
             try {
                 this.map.resize();
                 this.ensureResponsive();
-                
-                const width = window.innerWidth;
-                let zoom;
-
-                if (width <= 480) {
-                    zoom = 5.8;
-                } else if (width <= 768) {
-                    zoom = 6.0;
-                } else if (width <= 1024) {
-                    zoom = 6.3;
-                } else {
-                    zoom = 6.5;
-                }
-
-                if (state.animationComplete) {
-                    const center = state.userLocation && 
-                                 geolocationManager.isLocationInIreland(state.userLocation.latitude, state.userLocation.longitude)
-                                 ? [state.userLocation.longitude, state.userLocation.latitude]
-                                 : CONFIG.mapbox.irelandCenter;
-                    
-                    this.map.easeTo({
-                        zoom: zoom,
-                        center: center,
-                        duration: 200
-                    });
-                }
 
             } catch (error) {
                 errorHandler.handleDataError(error, 'resize');
@@ -679,7 +632,6 @@
         }
     };
 
-    // FIXED data manager to match your HTML structure
     const dataManager = {
         loadLocationData: function() {
             try {
@@ -695,26 +647,21 @@
         },
 
         getDOMElements: function() {
-            // Get sidebar items
             state.elements.locationItemSidebar = document.querySelectorAll("[location-item-sidebar]");
             
-            // FIXED: Get BOTH wrapper levels (your HTML structure has nested wrappers)
             const outerWrapper = document.querySelector(".map_locations-card_wrapper");
             const innerWrapper = document.querySelector(".locations-map-card-wrapper");
             
-            // Store both wrappers
             state.elements.outerCardWrapper = outerWrapper;
             state.elements.innerCardWrapper = innerWrapper;
-            state.elements.locationMapCardWrapper = outerWrapper; // Keep for compatibility
+            state.elements.locationMapCardWrapper = outerWrapper;
             
-            // FIXED: Get all card items (your HTML structure)  
             let cardItems = document.querySelectorAll(".locations-map-card_item");
             if (cardItems.length === 0) {
                 cardItems = document.querySelectorAll("[locations-map-card-item]");
             }
             state.elements.locationMapCardItem = cardItems;
             
-            // FIXED: Get all close buttons (your HTML structure)
             let closeButtons = document.querySelectorAll(".locations-map-card_close-block");
             if (closeButtons.length === 0) {
                 closeButtons = document.querySelectorAll("[locations-map-card-close-block]");
@@ -722,50 +669,42 @@
             state.elements.locationMapCardCloseBtn = closeButtons;
 
             utils.log('info', `Found ${state.elements.locationItemSidebar.length} Niko Bathrooms locations`);
-            utils.log('info', `Found outer wrapper: ${state.elements.outerCardWrapper ? 'Yes' : 'No'}`);
-            utils.log('info', `Found inner wrapper: ${state.elements.innerCardWrapper ? 'Yes' : 'No'}`);
-            utils.log('info', `Found ${state.elements.locationMapCardItem.length} card items`);
-            utils.log('info', `Found ${state.elements.locationMapCardCloseBtn.length} close buttons`);
             
-            // CRITICAL: Clean up all default states on load
-            // Remove ALL is--active from sidebar items (only one should be active at a time)
-            state.elements.locationItemSidebar.forEach((item) => {
-                item.classList.remove('is--active');
-            });
-            
-            // Remove the default "is--show" class from outer wrapper on load
-            if (state.elements.outerCardWrapper && state.elements.outerCardWrapper.classList.contains('is--show')) {
-                state.elements.outerCardWrapper.classList.remove('is--show');
-                utils.log('info', 'Removed default is--show class from outer wrapper');
-            }
-            
-            // Force hide all individual cards
+            this.forceCleanupInitialStates();
             this.forceHideAllCardsOnLoad();
         },
         
-        // NEW: Force hide everything on initial load
-        forceHideAllCardsOnLoad: function() {
-            // Hide outer wrapper
+        forceCleanupInitialStates: function() {
+            state.elements.locationItemSidebar.forEach((item) => {
+                item.classList.remove('is--active'); // Ensure inner element also has class removed
+                const parent = item.closest('.location-item_sidebar.w-dyn-item');
+                if (parent) {
+                    parent.classList.remove('is--active');
+                }
+            });
+            
             if (state.elements.outerCardWrapper) {
-                state.elements.outerCardWrapper.style.display = 'none';
                 state.elements.outerCardWrapper.classList.remove('is--show');
             }
             
-            // Hide inner wrapper  
-            if (state.elements.innerCardWrapper) {
-                state.elements.innerCardWrapper.style.display = 'none';
-                state.elements.innerCardWrapper.classList.remove('is--show');
+            utils.log('info', 'Cleaned up initial states');
+        },
+        
+        forceHideAllCardsOnLoad: function() {
+            if (state.elements.outerCardWrapper) {
+                state.elements.outerCardWrapper.style.display = 'none';
             }
             
-            // Force hide all individual cards
+            if (state.elements.innerCardWrapper) {
+                state.elements.innerCardWrapper.style.display = 'none';
+            }
+            
             state.elements.locationMapCardItem.forEach(item => {
                 item.style.display = 'none';
-                item.style.opacity = '0';
-                item.style.visibility = 'hidden';
                 item.classList.remove('is--show');
             });
             
-            utils.log('info', 'Force hidden all cards and wrappers on load');
+            utils.log('info', 'Hidden all cards on load');
         },
 
         processLocations: function() {
@@ -862,6 +801,15 @@
 
                 utils.log('info', `Niko Bathrooms sidebar clicked: ${locationID}`);
 
+                // FIXED: Wait for map to be ready
+                if (!state.mapLoaded || !state.animationComplete) {
+                    utils.log('info', 'Map not ready, waiting...');
+                    setTimeout(() => {
+                        this.handleSidebarClick(e);
+                    }, 500);
+                    return;
+                }
+
                 if (window.innerWidth <= 767) {
                     const section = document.getElementById('section-map');
                     if (section) {
@@ -892,24 +840,37 @@
         }
     };
 
-    // COMPLETELY REWRITTEN UI manager for your HTML structure
     const uiManager = {
         updateActiveLocation: function(locationID) {
             try {
-                // Remove active class from all sidebar items first
-                state.elements.locationItemSidebar.forEach((el) => {
-                    el.classList.remove("is--active");
+                // Remove all active states from all potential parent elements
+                document.querySelectorAll('.location-item_sidebar.w-dyn-item.is--active').forEach((el) => {
+                    el.classList.remove('is--active');
+                });
+                // Also remove from any inner wrappers if they somehow got it, for absolute cleanliness
+                document.querySelectorAll('.location-item-wrapper_sidebar.is--active').forEach((el) => { // Fixed selector
+                    el.classList.remove('is--active');
                 });
 
-                // Add active class to matching item
-                state.elements.locationItemSidebar.forEach((el) => {
+                // Add active state ONLY to the matching OUTER parent item
+                state.elements.locationItemSidebar.forEach((el) => { // el is the inner [location-item-sidebar]
                     if (el.getAttribute("data-id") === locationID) {
-                        el.classList.add("is--active");
+                        const outerParent = el.closest('.location-item_sidebar.w-dyn-item');
+                        if (outerParent) {
+                            outerParent.classList.add("is--active");
+                            utils.log('info', `Added is--active to outer div for: ${locationID}`);
+                        } else {
+                            utils.log('warn', `Could not find outer parent for ${locationID} to add is--active.`);
+                        }
+                        // Also add to the inner wrapper if it exists and we're sure it's meant to be styled that way
+                        // This might be redundant if CSS only targets outerParent, but included for completeness if needed.
+                        // if (el.classList.contains('location-item-wrapper_sidebar')) { // Check if 'el' is the wrapper itself
+                        //     el.classList.add('is--active');
+                        // }
                     }
                 });
 
                 state.currentActiveLocation = locationID;
-                utils.log('info', `Active Niko Bathrooms location updated: ${locationID}`);
 
             } catch (error) {
                 errorHandler.handleDataError(error, 'active location update');
@@ -921,6 +882,7 @@
                 const coordinates = e.features[0].geometry.coordinates.slice();
                 const name = e.features[0].properties.name;
 
+                // Remove existing popups
                 const existingPopups = document.getElementsByClassName("mapboxgl-popup");
                 Array.from(existingPopups).forEach(popup => popup.remove());
 
@@ -928,43 +890,17 @@
                     closeOnClick: false,
                     closeButton: true,
                     focusAfterOpen: false,
-                    maxWidth: '320px'
+                    maxWidth: '320px',
+                    className: 'niko-branded-popup'
                 })
                 .setLngLat(coordinates)
                 .setHTML(`
-                    <div role="dialog" aria-label="Niko Bathrooms location details" style="
-                        padding: 12px; 
-                        text-align: center;
-                        font-family: inherit;
-                    ">
-                        <div style="
-                            color: ${CONFIG.brand.primary}; 
-                            font-size: 12px; 
-                            font-weight: 600; 
-                            text-transform: uppercase; 
-                            letter-spacing: 1px; 
-                            margin-bottom: 6px;
-                        ">
-                            Niko Bathrooms Supplier
-                        </div>
-                        <strong style="
-                            font-size: 16px; 
-                            color: ${CONFIG.brand.dark}; 
-                            display: block;
-                            line-height: 1.3;
-                        ">${name}</strong>
+                    <div class="niko-popup-content">
+                        <div class="niko-popup-badge">Niko Bathrooms Supplier</div>
+                        <strong class="niko-popup-title">${name}</strong>
                     </div>
                 `)
                 .addTo(mapManager.map);
-
-                setTimeout(() => {
-                    const closeButton = popup._container.querySelector('.mapboxgl-popup-close-button');
-                    if (closeButton) {
-                        closeButton.removeAttribute('aria-hidden');
-                        closeButton.setAttribute('aria-label', `Close ${name} popup`);
-                        closeButton.setAttribute('title', `Close ${name} popup`);
-                    }
-                }, CONFIG.ui.popupCloseDelay);
 
                 utils.log('info', `Niko Bathrooms popup shown for: ${name}`);
 
@@ -973,70 +909,29 @@
             }
         },
 
-        // COMPLETELY FIXED for your HTML structure - CRITICAL FIX: h3 to h5
         showLocationCard: function(locationID) {
             try {
-                utils.log('info', `=== ATTEMPTING TO SHOW CARD FOR: ${locationID} ===`);
+                utils.log('info', `Showing card for: ${locationID}`);
                 
-                // First, hide all cards and show the wrapper
                 this.hideAllCards();
                 this.showCardWrapper();
                 
                 let cardFound = false;
                 
-                utils.log('info', `Searching through ${state.elements.locationMapCardItem.length} cards`);
-                
-                // Search through all card items to find matching one
                 state.elements.locationMapCardItem.forEach((cardItem, index) => {
                     if (cardFound) return;
                     
-                    // CRITICAL FIX: Look for h5 instead of h3 (matches your HTML structure)
                     const titleElement = cardItem.querySelector('h5');
                     if (titleElement) {
                         const cardTitle = titleElement.textContent.trim();
-                        utils.log('info', `Card ${index}: "${cardTitle}" vs "${locationID}"`);
                         
                         if (cardTitle === locationID) {
-                            utils.log('info', `✅ EXACT MATCH FOUND at index ${index}!`);
                             this.displayCard(cardItem, locationID, index);
                             cardFound = true;
                             return;
                         }
-                    } else {
-                        utils.log('warn', `Card ${index}: No h5 title found`);
                     }
                 });
-                
-                // If exact match not found, try partial match
-                if (!cardFound) {
-                    utils.log('info', 'No exact match, trying partial match...');
-                    
-                    state.elements.locationMapCardItem.forEach((cardItem, index) => {
-                        if (cardFound) return;
-                        
-                        const cardText = cardItem.textContent || cardItem.innerText || '';
-                        if (cardText.includes(locationID)) {
-                            utils.log('info', `✅ PARTIAL MATCH FOUND at index ${index}!`);
-                            this.displayCard(cardItem, locationID, index);
-                            cardFound = true;
-                            return;
-                        }
-                    });
-                }
-
-                if (!cardFound) {
-                    utils.log('error', `❌ NO CARD FOUND for: "${locationID}"`);
-                    
-                    // DEBUG: Show what cards we actually have
-                    utils.log('info', '=== AVAILABLE CARDS ===');
-                    state.elements.locationMapCardItem.forEach((cardItem, index) => {
-                        const titleElement = cardItem.querySelector('h5');
-                        const title = titleElement ? titleElement.textContent.trim() : 'No title';
-                        utils.log('info', `Card ${index}: "${title}"`);
-                    });
-                } else {
-                    utils.log('info', `✅ Card successfully set up for: ${locationID}`);
-                }
 
                 this.setupCardCloseButtons();
 
@@ -1045,113 +940,56 @@
             }
         },
 
-        // ENHANCED: Show the card wrapper with detailed logging
         showCardWrapper: function() {
-            utils.log('info', '=== SHOWING CARD WRAPPER ===');
-            
             if (state.elements.outerCardWrapper) {
-                utils.log('info', 'Outer wrapper before:', {
-                    display: state.elements.outerCardWrapper.style.display,
-                    classes: state.elements.outerCardWrapper.className
-                });
-                
                 state.elements.outerCardWrapper.style.display = 'block';
-                state.elements.outerCardWrapper.classList.add('niko-show');
                 state.elements.outerCardWrapper.classList.add('is--show');
-                
-                utils.log('info', 'Outer wrapper after:', {
-                    display: state.elements.outerCardWrapper.style.display,
-                    classes: state.elements.outerCardWrapper.className
-                });
-            } else {
-                utils.log('error', 'Outer wrapper not found!');
             }
             
             if (state.elements.innerCardWrapper) {
-                utils.log('info', 'Inner wrapper before:', {
-                    display: state.elements.innerCardWrapper.style.display,
-                    classes: state.elements.innerCardWrapper.className
-                });
-                
                 state.elements.innerCardWrapper.style.display = 'block';
                 state.elements.innerCardWrapper.classList.add('is--show');
-                
-                utils.log('info', 'Inner wrapper after:', {
-                    display: state.elements.innerCardWrapper.style.display,
-                    classes: state.elements.innerCardWrapper.className
-                });
-            } else {
-                utils.log('error', 'Inner wrapper not found!');
             }
-            
-            utils.log('info', '✅ Card wrappers show process complete');
         },
 
-        // FIXED: Hide the card wrapper (handle both levels) - Remove all classes
         hideCardWrapper: function() {
             if (state.elements.outerCardWrapper) {
                 state.elements.outerCardWrapper.style.display = 'none';
-                state.elements.outerCardWrapper.classList.remove('niko-show'); // Remove custom class
                 state.elements.outerCardWrapper.classList.remove('is--show');
             }
             if (state.elements.innerCardWrapper) {
                 state.elements.innerCardWrapper.style.display = 'none';
                 state.elements.innerCardWrapper.classList.remove('is--show');
             }
-            utils.log('info', 'Card wrappers hidden');
         },
 
-        // ENHANCED: Hide all individual cards with force
         hideAllCards: function() {
             state.elements.locationMapCardItem.forEach(item => {
                 item.style.display = 'none';
-                item.style.opacity = '0';
-                item.style.visibility = 'hidden';
                 item.classList.remove('is--show');
             });
-            utils.log('info', 'All cards forcibly hidden');
         },
 
-        // ENHANCED: Display specific card with detailed logging
         displayCard: function(cardItem, locationID, index) {
-            utils.log('info', `=== DISPLAYING CARD ===`);
-            utils.log('info', `Card: ${locationID} at index ${index}`);
-            
-            // Show the specific card with multiple methods
             cardItem.style.display = 'block';
-            cardItem.style.opacity = '1';
-            cardItem.style.visibility = 'visible';
             cardItem.classList.add('is--show');
             
-            // Force positioning (important for your structure)
             cardItem.style.position = 'absolute';
             cardItem.style.bottom = '24px';
             cardItem.style.right = '24px';
             cardItem.style.zIndex = '1000';
             cardItem.style.maxWidth = '360px';
             cardItem.style.minWidth = '300px';
-            cardItem.style.backgroundColor = '#ffffff';
-            cardItem.style.borderRadius = '12px';
-            cardItem.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.1)';
             
-            // Log the final state
-            utils.log('info', `Card display: ${cardItem.style.display}`);
-            utils.log('info', `Card opacity: ${cardItem.style.opacity}`);
-            utils.log('info', `Card visibility: ${cardItem.style.visibility}`);
-            utils.log('info', `Card classes: ${cardItem.className}`);
-            utils.log('info', `Card position: ${cardItem.style.position}`);
-            
-            utils.log('info', `✅ Card successfully displayed for: ${locationID}`);
+            utils.log('info', `Card displayed for: ${locationID}`);
         },
 
         setupCardCloseButtons: function() {
             state.elements.locationMapCardCloseBtn.forEach(closeBtn => {
-                // Remove existing listeners
-                closeBtn.removeEventListener('click', this.handleCardClose);
-                // Add new listener
-                closeBtn.addEventListener('click', this.handleCardClose.bind(this));
+                closeBtn.addEventListener('click', (e) => {
+                    this.handleCardClose(e);
+                });
             });
-            utils.log('info', `Setup ${state.elements.locationMapCardCloseBtn.length} close buttons`);
         },
 
         handleCardClose: function(e) {
@@ -1159,45 +997,42 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                utils.log('info', 'Card close button clicked');
-                
-                // Hide all cards and the wrapper
                 this.hideAllCards();
                 this.hideCardWrapper();
                 
-                utils.log('info', 'Niko Bathrooms location cards closed');
+                const existingPopups = document.getElementsByClassName("mapboxgl-popup");
+                Array.from(existingPopups).forEach(popup => popup.remove());
+                
+                utils.log('info', 'Cards closed');
             } catch (error) {
                 errorHandler.handleDataError(error, 'card close');
             }
         }
     };
 
-    // Main initialization function
     function initialize() {
         if (window.nikoMapboxInitialized) {
-            utils.log('info', 'Niko Bathrooms Mapbox already initialized, skipping...');
+            utils.log('info', 'Already initialized, skipping...');
             return;
         }
 
-        utils.log('info', 'Starting Niko Bathrooms Mapbox initialization v2.6');
+        utils.log('info', 'Starting Niko Bathrooms Mapbox initialization');
         window.nikoMapboxInitialized = true;
 
         const success = mapManager.init();
         
         if (!success) {
-            utils.log('error', 'Niko Bathrooms map initialization failed');
+            utils.log('error', 'Map initialization failed');
             window.nikoMapboxInitialized = false;
         }
     }
 
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
         setTimeout(initialize, 50);
     }
 
-    // Enhanced public API for debugging
     window.NikoMapboxManager = {
         getState: () => state,
         getConfig: () => CONFIG,
@@ -1205,70 +1040,11 @@
             window.nikoMapboxInitialized = false;
             initialize();
         },
-        utils: utils,
-        geolocation: geolocationManager,
-        forceResponsive: () => {
-            if (mapManager.map) {
-                mapManager.ensureResponsive();
-                mapManager.map.resize();
-            }
-        },
-        // ENHANCED DEBUG FUNCTIONS FOR YOUR HTML
-        debugCards: () => {
-            console.log('=== NIKO BATHROOMS CARD DEBUG ===');
-            console.log('Card Wrapper:', state.elements.locationMapCardWrapper);
-            console.log('Card Items:', state.elements.locationMapCardItem.length);
-            console.log('Close Buttons:', state.elements.locationMapCardCloseBtn.length);
-            
-            state.elements.locationMapCardItem.forEach((item, index) => {
-                const title = item.querySelector('h5'); // FIXED: Changed from h3 to h5
-                const isVisible = item.style.display !== 'none' && item.classList.contains('is--show');
-                console.log(`Card ${index}: "${title ? title.textContent : 'No title'}" - Visible: ${isVisible}`);
-            });
-            
-            if (state.elements.locationMapCardWrapper) {
-                const wrapperVisible = state.elements.locationMapCardWrapper.style.display !== 'none' && 
-                                    state.elements.locationMapCardWrapper.classList.contains('is--show');
-                console.log(`Wrapper visible: ${wrapperVisible}`);
-            }
-        },
-        debugSidebar: () => {
-            console.log('=== NIKO BATHROOMS SIDEBAR DEBUG ===');
-            console.log('Sidebar Items:', state.elements.locationItemSidebar.length);
-            
-            state.elements.locationItemSidebar.forEach((item, index) => {
-                const name = item.querySelector('[location-name-sidebar]');
-                const dataId = item.getAttribute('data-id');
-                const isActive = item.classList.contains('is--active');
-                console.log(`Sidebar ${index}: "${name ? name.textContent : 'No name'}" - ID: ${dataId} - Active: ${isActive}`);
-            });
+        testActiveState: (locationName) => {
+            uiManager.updateActiveLocation(locationName);
         },
         testCard: (locationName) => {
-            console.log(`=== TESTING CARD FOR: ${locationName} ===`);
             uiManager.showLocationCard(locationName);
-        },
-        forceShowCard: (index) => {
-            const cardItem = state.elements.locationMapCardItem[index];
-            if (cardItem) {
-                uiManager.hideAllCards();
-                uiManager.showCardWrapper();
-                uiManager.displayCard(cardItem, `Test Card ${index}`, index);
-            }
-        },
-        hideAllCards: () => {
-            uiManager.hideAllCards();
-            uiManager.hideCardWrapper();
-        },
-        showWrapper: () => {
-            uiManager.showCardWrapper();
-        },
-        // Test functions for your HTML structure
-        testHtmlStructure: () => {
-            console.log('=== HTML STRUCTURE TEST ===');
-            console.log('Map wrapper:', document.querySelector('.map_locations-card_wrapper'));
-            console.log('Card items:', document.querySelectorAll('.locations-map-card_item'));
-            console.log('Close buttons:', document.querySelectorAll('.locations-map-card_close-block'));
-            console.log('Sidebar items:', document.querySelectorAll('[location-item-sidebar]'));
         }
     };
 

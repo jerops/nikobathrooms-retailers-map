@@ -1,107 +1,49 @@
-/* NIKO BATHROOMS - FIXED WEBFLOW CSS
- * Version: 2.6 - Fixed Active States for Sidebar
- * Fixed card display logic and sidebar states
+/* NIKO BATHROOMS MAP - WORKING CSS
+ * Fixed: Active states, popup positioning, card display
  */
 
-/* CSS Custom Properties - Niko Bathrooms Brand */
+/* 1. Root Variables */
 :root {
   --niko-primary: #4A9B9B;
   --niko-primary-dark: #357575;
   --niko-primary-light: #6BB3B3;
-  --niko-primary-ultra-light: rgba(74, 155, 155, 0.08);
-  --niko-secondary: #2A2A2A;
   --niko-white: #ffffff;
+  --niko-dark: #2A2A2A;
   --niko-grey-light: #f8f9fa;
   --niko-grey: #e9ecef;
-  --niko-grey-medium: #dee2e6;
-  --niko-grey-dark: #6c757d;
-  --niko-text: #2A2A2A;
   --niko-text-light: #666666;
-  --niko-text-muted: #8e8e8e;
-  --niko-shadow: 0 4px 20px rgba(74, 155, 155, 0.15);
-  --niko-shadow-hover: 0 8px 30px rgba(74, 155, 155, 0.25);
-  --niko-shadow-active: 0 2px 10px rgba(74, 155, 155, 0.3);
-  --niko-border-radius: 12px;
-  --niko-border-radius-small: 8px;
-  --niko-transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --niko-transition-fast: 0.15s ease;
+  --niko-transition: 0.3s ease;
 }
 
-/* =================================
-   MAP CONTAINER STYLES
-   ================================= */
-
+/* 2. Map Container */
 #map {
   width: 100% !important;
   height: 100% !important;
   flex: 1 !important;
   min-height: 500px !important;
-  border-radius: 0 !important;
   position: relative !important;
-  transform: translateZ(0) !important;
-  will-change: transform !important;
   max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
 }
 
-#map .mapboxgl-canvas-container,
-#map .mapboxgl-canvas,
-#map .mapboxgl-map {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Enhanced Loading State */
-#mapbox-loader {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* =================================
-   SIDEBAR STYLES - FIXED
-   ================================= */
-
+/* Sidebar Base Styles */
 .map_side-bar {
   overflow-y: auto !important;
-  overflow-x: hidden !important;
   background: var(--niko-white) !important;
-  border-left: 1px solid var(--niko-grey-medium) !important;
 }
 
-/* Add a subtle header to sidebar */
-.map_side-bar::before {
-  content: "Niko Bathrooms Suppliers";
-  display: block;
-  padding: 20px 24px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--niko-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid var(--niko-grey);
-  background: var(--niko-grey-light);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* 3. Sidebar Styles */
+.location-distance_sidebar {
+    visibility: hidden; /* Hide element but preserve its space */
+    opacity: 0;        /* Make it fully transparent */
+    transition: visibility 0s 0.2s, opacity 0.2s linear; /* Smooth transition when shown */
 }
-
-/* CRITICAL FIX: Updated selectors to match your HTML structure */
-/* Base styling for all sidebar location items */
-.location-item-wrapper_sidebar,
-[location-item-sidebar] {
+.location-distance_sidebar.is--visible {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0s, opacity 0.2s linear;
+}
+/* 3.1. Fixed: Sidebar Location Items - Base Styles only on the outer div */
+.location-item_sidebar.w-dyn-item {
   transition: all var(--niko-transition) !important;
   background: var(--niko-white) !important;
   border-left: 4px solid transparent !important;
@@ -111,138 +53,38 @@
   border-bottom: 1px solid var(--niko-grey) !important;
 }
 
-/* Subtle background pattern for premium feel */
-.location-item-wrapper_sidebar::before,
-[location-item-sidebar]::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, var(--niko-primary-ultra-light) 100%);
-  opacity: 0;
-  transition: opacity var(--niko-transition);
-  pointer-events: none;
-}
-
-/* ENHANCED HOVER STATE - FIXED to match your HTML */
-.location-item-wrapper_sidebar:hover,
-[location-item-sidebar]:hover {
+/* 3.2. Hover States - only on the outer div */
+.location-item_sidebar.w-dyn-item:hover {
   background: var(--niko-grey-light) !important;
   border-left-color: var(--niko-primary-light) !important;
   transform: translateX(4px) !important;
   box-shadow: 0 4px 12px rgba(74, 155, 155, 0.1) !important;
 }
 
-.location-item-wrapper_sidebar:hover::before,
-[location-item-sidebar]:hover::before {
-  opacity: 1;
-}
-
-.location-item-wrapper_sidebar:hover .location-name_sidebar,
-[location-item-sidebar]:hover .location-name_sidebar,
-.location-item-wrapper_sidebar:hover [location-name-sidebar],
-[location-item-sidebar]:hover [location-name-sidebar] {
-  color: var(--niko-primary) !important;
-}
-
-.location-item-wrapper_sidebar:hover .location-address,
-.location-item-wrapper_sidebar:hover .location-city,
-[location-item-sidebar]:hover .location-address,
-[location-item-sidebar]:hover .location-city,
-.location-item-wrapper_sidebar:hover [location-address-sidebar],
-.location-item-wrapper_sidebar:hover [location-city-sidebar],
-[location-item-sidebar]:hover [location-address-sidebar],
-[location-item-sidebar]:hover [location-city-sidebar] {
-  color: var(--niko-text) !important;
-}
-
-/* CRITICAL FIX: Active state selectors to match your HTML structure */
-.location-item-wrapper_sidebar.is--active,
-[location-item-sidebar].is--active,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active,
-.w-dyn-item .location-item-wrapper_sidebar.is--active {
-  background: linear-gradient(135deg, var(--niko-primary-ultra-light), rgba(74, 155, 155, 0.12)) !important;
-  border-left-color: var(--niko-primary) !important;
-  border-left-width: 6px !important;
+/* 3.3. Fixed: Active States - only on the outer div */
+.location-item_sidebar.w-dyn-item.is--active {
+  background: linear-gradient(135deg, rgba(74, 155, 155, 0.08), rgba(74, 155, 155, 0.12)) !important;
+  border-left: 6px solid var(--niko-primary) !important;
   transform: translateX(6px) !important;
   box-shadow: inset 0 0 0 1px rgba(74, 155, 155, 0.2), 
               0 6px 20px rgba(74, 155, 155, 0.15) !important;
 }
 
-.location-item-wrapper_sidebar.is--active::before,
-[location-item-sidebar].is--active::before,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active::before,
-.w-dyn-item .location-item-wrapper_sidebar.is--active::before {
-  opacity: 1;
-}
-
-/* Active state text styling - ALL possible selectors */
-.location-item-wrapper_sidebar.is--active .location-name_sidebar,
-.location-item-wrapper_sidebar.is--active [location-name-sidebar],
-[location-item-sidebar].is--active .location-name_sidebar,
-[location-item-sidebar].is--active [location-name-sidebar],
-.location-item_sidebar .location-item-wrapper_sidebar.is--active .location-name_sidebar,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active [location-name-sidebar],
-.w-dyn-item .location-item-wrapper_sidebar.is--active .location-name_sidebar,
-.w-dyn-item .location-item-wrapper_sidebar.is--active [location-name-sidebar] {
+/* 3.4. Fixed: Active State Text Styling - only when the outer div is active */
+.location-item_sidebar.w-dyn-item.is--active .location-name_sidebar,
+.location-item_sidebar.w-dyn-item.is--active [location-name-sidebar] {
   color: var(--niko-primary-dark) !important;
   font-weight: 700 !important;
 }
 
-.location-item-wrapper_sidebar.is--active .location-address,
-.location-item-wrapper_sidebar.is--active .location-city,
-.location-item-wrapper_sidebar.is--active [location-address-sidebar],
-.location-item-wrapper_sidebar.is--active [location-city-sidebar],
-[location-item-sidebar].is--active .location-address,
-[location-item-sidebar].is--active .location-city,
-[location-item-sidebar].is--active [location-address-sidebar],
-[location-item-sidebar].is--active [location-city-sidebar],
-.location-item_sidebar .location-item-wrapper_sidebar.is--active .location-address,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active .location-city,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active [location-address-sidebar],
-.location-item_sidebar .location-item-wrapper_sidebar.is--active [location-city-sidebar],
-.w-dyn-item .location-item-wrapper_sidebar.is--active .location-address,
-.w-dyn-item .location-item-wrapper_sidebar.is--active .location-city,
-.w-dyn-item .location-item-wrapper_sidebar.is--active [location-address-sidebar],
-.w-dyn-item .location-item-wrapper_sidebar.is--active [location-city-sidebar] {
-  color: var(--niko-text) !important;
-}
-
-.location-item-wrapper_sidebar.is--active .location-distance_sidebar,
-.location-item-wrapper_sidebar.is--active [location-distance-sidebar],
-[location-item-sidebar].is--active .location-distance_sidebar,
-[location-item-sidebar].is--active [location-distance-sidebar],
-.location-item_sidebar .location-item-wrapper_sidebar.is--active .location-distance_sidebar,
-.location-item_sidebar .location-item-wrapper_sidebar.is--active [location-distance-sidebar],
-.w-dyn-item .location-item-wrapper_sidebar.is--active .location-distance_sidebar,
-.w-dyn-item .location-item-wrapper_sidebar.is--active [location-distance-sidebar] {
-  background: var(--niko-primary) !important;
-  color: var(--niko-white) !important;
-  padding: 4px 8px !important;
-  border-radius: var(--niko-border-radius-small) !important;
-  font-size: 11px !important;
-}
-
-/* Focus state for accessibility - Updated selectors */
-.location-item-wrapper_sidebar:focus,
-[location-item-sidebar]:focus {
-  outline: 3px solid var(--niko-primary) !important;
-  outline-offset: -3px !important;
-  border-left-color: var(--niko-primary) !important;
-}
-
-/* Enhanced Typography - Updated selectors */
+/* 3.5. Typography */
 .location-name_sidebar,
 [location-name-sidebar] {
-  color: var(--niko-text) !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  transition: all var(--niko-transition-fast) !important;
+  color: var(--niko-dark) !important;
   font-size: 16px !important;
   font-weight: 600 !important;
   margin-bottom: 8px !important;
+  transition: all var(--niko-transition) !important;
 }
 
 .location-address,
@@ -250,322 +92,171 @@
 [location-address-sidebar],
 [location-city-sidebar] {
   color: var(--niko-text-light) !important;
-  transition: color var(--niko-transition-fast) !important;
   font-size: 14px !important;
   line-height: 1.4 !important;
 }
 
-.location-distance_sidebar,
-[location-distance-sidebar] {
-  color: var(--niko-primary) !important;
-  transition: all var(--niko-transition-fast) !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  margin-top: 8px !important;
-}
-
-/* =================================
-   LOCATION CARDS - FINAL FIX FOR YOUR EXACT HTML STRUCTURE
-   ================================= */
-
-/* OUTER WRAPPER - Webflow CMS wrapper that has is--show by default */
-.map_locations-card_wrapper {
-  display: none !important;
-  position: relative !important;
-  pointer-events: none !important;
-}
-
-/* OVERRIDE: Even if it has is--show, keep it hidden until JS shows it */
-.map_locations-card_wrapper.is--show {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-/* Only show when JS explicitly adds our control class */
-.map_locations-card_wrapper.niko-show {
-  display: block !important;
-  pointer-events: auto !important;
-}
-
-/* INNER WRAPPER - The actual cards container */
+/* 4. Location Cards */
+/* 4.1. Fixed: Card Wrappers - map_locations-card_wrapper rules removed */
 .locations-map-card-wrapper {
   display: none !important;
   position: relative !important;
 }
 
-/* Show inner wrapper when active */
 .locations-map-card-wrapper.is--show {
   display: block !important;
 }
 
-/* CRITICAL FIX: FORCE Hide all individual cards by default */
+/* 4.2. Fixed: Location Cards */
 .locations-map-card_item {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
 }
 
-/* Show only cards with is--show class */
 .locations-map-card_item.is--show {
-  display: block !important;
+  display: flex !important;
   opacity: 1 !important;
   visibility: visible !important;
-  position: absolute !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 1000 !important;
   background: var(--niko-white) !important;
-  border-radius: var(--niko-border-radius) !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 
-              0 8px 25px rgba(74, 155, 155, 0.15),
-              0 0 0 1px rgba(74, 155, 155, 0.1) !important;
-  outline: none !important;
-  font-family: inherit !important;
-  backdrop-filter: blur(10px) !important;
-  transition: all var(--niko-transition) !important;
+              0 8px 25px rgba(74, 155, 155, 0.15) !important;
   max-width: 360px !important;
   min-width: 300px !important;
-  animation: nikoCardSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: nikoCardSlideIn 0.4s ease forwards; /* Added forwards to keep end state */
 }
 
-/* Card hover effects */
-.locations-map-card_item.is--show:hover {
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15), 
-              0 12px 35px rgba(74, 155, 155, 0.2),
-              0 0 0 1px rgba(74, 155, 155, 0.15) !important;
-  transform: translateY(-2px) !important;
+/* 5. Mapbox Popups (Click Tooltip/Info) */
+/* 5.1. Fixed: Popup Positioning and Styling */
+/* Added a more general rule for z-index to ensure it's always above other elements */
+.mapboxgl-popup {
+    z-index: 10000 !important; /* Ensure popup is on top */
 }
 
-/* Card Header with Niko Branding */
-.locations-map-card_item::before {
-  content: '';
-  display: block;
-  height: 6px;
-  background: linear-gradient(135deg, var(--niko-primary), var(--niko-primary-light));
-  margin-bottom: 0;
-  border-radius: var(--niko-border-radius) var(--niko-border-radius) 0 0;
+/* Remove these transform rules from CSS and control offset in JS */
+/*
+.niko-branded-popup.mapboxgl-popup.mapboxgl-popup-anchor-bottom {
+  transform: translate(-50%, -120%) !important;
 }
 
-/* Card Content Area */
-.locations-map-card_item > * {
-  padding-left: 28px !important;
-  padding-right: 28px !important;
+.niko-branded-popup.mapboxgl-popup.mapboxgl-popup-anchor-top {
+  transform: translate(-50%, 20%) !important;
 }
 
-.locations-map-card_item > h5:first-of-type {
-  padding-top: 24px !important;
+.niko-branded-popup.mapboxgl-popup.mapboxgl-popup-anchor-left {
+  transform: translate(20%, -50%) !important;
 }
 
-.locations-map-card_item > *:last-child {
-  padding-bottom: 28px !important;
+.niko-branded-popup.mapboxgl-popup.mapboxgl-popup-anchor-right {
+  transform: translate(-120%, -50%) !important;
+}
+*/
+
+.niko-branded-popup .mapboxgl-popup-content {
+  background: var(--niko-white) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1), 
+              0 5px 20px rgba(74, 155, 155, 0.15) !important;
+  border: none !important;
+  padding: 20px 24px !important;
 }
 
-/* Enhanced Card Typography */
-.locations-map-card_item h5 {
-  color: var(--niko-text) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  margin: 0 0 16px 0 !important;
-  padding-right: 60px !important;
-  line-height: 1.3 !important;
-  position: relative !important;
+/* 5.2. Fixed: Tooltip Triangle */
+.niko-branded-popup .mapboxgl-popup-tip {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-/* Premium subtitle */
-.locations-map-card_item h5::after {
-  content: "Niko Bathrooms Supplier";
-  display: block;
+.niko-branded-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top: 10px solid var(--niko-white) !important;
+  border-bottom: none !important;
+  border-left: 10px solid transparent !important;
+  border-right: 10px solid transparent !important;
+}
+
+.niko-branded-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom: 10px solid var(--niko-white) !important;
+  border-top: none !important;
+  border-left: 10px solid transparent !important;
+  border-right: 10px solid transparent !important;
+}
+
+.niko-branded-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right: 10px solid var(--niko-white) !important;
+  border-left: none !important;
+  border-top: 10px solid transparent !important;
+  border-bottom: 10px solid transparent !important;
+}
+
+.niko-branded-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left: 10px solid var(--niko-white) !important;
+  border-right: none !important;
+  border-top: 10px solid transparent !important;
+  border-bottom: 10px solid transparent !important;
+}
+
+/* 5.3. Popup Content */
+.niko-popup-content {
+  text-align: center;
+  font-family: inherit;
+}
+
+.niko-popup-badge {
+  color: var(--niko-primary);
   font-size: 12px;
   font-weight: 600;
-  color: var(--niko-primary);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-top: 4px;
+  margin-bottom: 6px;
 }
 
-.locations-map-card_item p {
-  color: var(--niko-text-light) !important;
-  font-size: 15px !important;
-  line-height: 1.5 !important;
-  margin: 0 0 12px 0 !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 8px !important;
+.niko-popup-title {
+  font-size: 16px;
+  color: var(--niko-dark);
+  display: block;
+  line-height: 1.3;
+  font-weight: 600;
 }
 
-.locations-map-card_item p:last-child {
-  margin-bottom: 0 !important;
-}
-
-.locations-map-card_item div {
-  color: var(--niko-text-light) !important;
-  font-size: 15px !important;
-  line-height: 1.5 !important;
-  margin: 0 0 8px 0 !important;
-}
-
-/* Add icons to contact information */
-.locations-map-card_item a[href^="tel"]::before {
-  content: "📞";
-  font-size: 14px;
-  opacity: 0.7;
-  margin-right: 8px;
-}
-
-.locations-map-card_item a[href^="mailto"]::before {
-  content: "✉️";
-  font-size: 14px;
-  opacity: 0.7;
-  margin-right: 8px;
-}
-
-/* Enhanced Links */
-.locations-map-card_item a {
-  color: var(--niko-primary) !important;
-  text-decoration: none !important;
-  font-weight: 600 !important;
-  transition: all var(--niko-transition-fast) !important;
-  border-bottom: 1px solid transparent !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-.locations-map-card_item a:hover {
-  color: var(--niko-primary-dark) !important;
-  border-bottom-color: var(--niko-primary-dark) !important;
-}
-
-/* Premium Close Button */
-.locations-map-card_close-block {
-  position: absolute !important;
-  top: 20px !important;
-  right: 20px !important;
-  background: var(--niko-white) !important;
-  border: 2px solid var(--niko-grey-medium) !important;
-  font-size: 16px !important;
-  cursor: pointer !important;
-  color: var(--niko-text-light) !important;
-  line-height: 1 !important;
-  font-weight: 400 !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  width: 36px !important;
-  height: 36px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all var(--niko-transition) !important;
-  outline: none !important;
-  z-index: 1001 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-}
-
-.locations-map-card_close-block:hover {
-  background: var(--niko-primary) !important;
-  border-color: var(--niko-primary) !important;
-  color: var(--niko-white) !important;
-  transform: scale(1.1) rotate(90deg) !important;
-  box-shadow: 0 4px 15px rgba(74, 155, 155, 0.3) !important;
-}
-
-.locations-map-card_close-block:focus {
-  outline: 3px solid var(--niko-primary-light) !important;
-  outline-offset: 2px !important;
-}
-
-/* =================================
-   MAPBOX CONTROLS
-   ================================= */
-
-.mapboxgl-ctrl-group {
-  border: 1px solid var(--niko-grey-medium) !important;
-  background: var(--niko-white) !important;
-  border-radius: var(--niko-border-radius-small) !important;
-  box-shadow: var(--niko-shadow) !important;
-  overflow: hidden !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.mapboxgl-ctrl-group button {
-  background: var(--niko-white) !important;
-  border: none !important;
-  color: var(--niko-text) !important;
-  transition: all var(--niko-transition) !important;
-  font-weight: 600 !important;
-}
-
-.mapboxgl-ctrl-group button:hover {
-  background: var(--niko-primary) !important;
-  color: var(--niko-white) !important;
-}
-
-.mapboxgl-ctrl-group button:focus {
-  outline: 2px solid var(--niko-primary) !important;
-  outline-offset: -2px !important;
-}
-
-/* =================================
-   MAPBOX POPUP
-   ================================= */
-
-.mapboxgl-popup-content {
-  pointer-events: auto;
-  padding: 20px 24px;
-  color: var(--niko-text);
-  background: var(--niko-white);
-  font-weight: 500;
-  border: none;
-  border-radius: var(--niko-border-radius);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1), 
-              0 5px 20px rgba(74, 155, 155, 0.15);
-  max-width: 320px;
-  outline: none;
-  font-family: inherit;
-  backdrop-filter: blur(10px);
-}
-
-.mapboxgl-popup-content:focus {
-  outline: 3px solid var(--niko-primary);
-  outline-offset: 2px;
-}
-
-/* Popup tips */
-.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
-  border-top-color: var(--niko-white);
-}
-
-.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
-  border-bottom-color: var(--niko-white);
-}
-
-.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
-  border-right-color: var(--niko-white);
-}
-
-.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
-  border-left-color: var(--niko-white);
-}
-
-.mapboxgl-popup-close-button {
-  color: var(--niko-text-light) !important;
+/* 5.4. Popup Close Button */
+.niko-branded-popup .mapboxgl-popup-close-button {
+  color: #999 !important;
   font-size: 18px !important;
-  font-weight: 300 !important;
-  padding: 8px !important;
-  border-radius: 50% !important;
-  transition: all var(--niko-transition) !important;
-  outline: none !important;
+  transition: all 0.3s ease !important;
   background: transparent !important;
 }
 
-.mapboxgl-popup-close-button:hover {
+.niko-branded-popup .mapboxgl-popup-close-button:hover {
   color: var(--niko-white) !important;
   background: var(--niko-primary) !important;
 }
 
-/* =================================
-   ANIMATIONS
-   ================================= */
+/* 6. NEW: Hover Tooltip */
+.map-tooltip {
+    position: absolute;
+    background-color: var(--niko-primary); /* Your brand primary color */
+    color: var(--niko-white);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none; /* Allows clicks to pass through to map features */
+    transform: translate(-50%, -100%); /* Centers horizontally, moves up from cursor */
+    z-index: 10000; /* Ensure it's on top of other map elements */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
 
+.map-tooltip.is--active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* 7. Animations */
 @keyframes nikoCardSlideIn {
   from {
     opacity: 0;
@@ -577,173 +268,8 @@
   }
 }
 
-/* =================================
-   SCROLLBAR STYLING
-   ================================= */
-
-.sidebar::-webkit-scrollbar,
-.map_side-bar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track,
-.map_side-bar::-webkit-scrollbar-track {
-  background: var(--niko-grey-light);
-  border-radius: 3px;
-}
-
-.sidebar::-webkit-scrollbar-thumb,
-.map_side-bar::-webkit-scrollbar-thumb {
-  background: var(--niko-primary);
-  border-radius: 3px;
-  transition: background var(--niko-transition-fast);
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover,
-.map_side-bar::-webkit-scrollbar-thumb:hover {
-  background: var(--niko-primary-dark);
-}
-
-.sidebar,
-.map_side-bar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--niko-primary) var(--niko-grey-light);
-}
-
-/* =================================
-   RESPONSIVE DESIGN
-   ================================= */
-
-/* Desktop Large (1200px+) */
-@media (min-width: 1200px) {
-  .locations-map-card_item.is--show {
-    max-width: 380px !important;
-  }
-}
-
-/* Tablet Landscape (768px - 991px) */
-@media (min-width: 768px) and (max-width: 991px) {
-  .map-component,
-  .map_componet {
-    height: 75vh !important;
-    flex-direction: column !important;
-  }
-  
-  .mapbox-wrapper,
-  .map-wrapper {
-    flex: 1 1 70% !important;
-    min-height: 400px !important;
-    width: 100% !important;
-    position: relative !important;
-  }
-  
-  .sidebar,
-  .map_side-bar {
-    flex: 1 1 30% !important;
-    max-height: none !important;
-    min-width: 100% !important;
-    width: 100% !important;
-    border-left: none !important;
-    border-top: 3px solid var(--niko-primary) !important;
-  }
-  
-  .sidebar::before,
-  .map_side-bar::before {
-    position: static;
-  }
-
-  .locations-map-card_item.is--show {
-    bottom: 16px !important;
-    right: 16px !important;
-    max-width: 340px !important;
-    min-width: 280px !important;
-  }
-}
-
-/* Mobile Landscape (481px - 767px) */
-@media (min-width: 481px) and (max-width: 767px) {
-  #section-map {
-    min-height: 95vh !important;
-  }
-  
-  .map-component,
-  .map_componet {
-    flex-direction: column !important;
-    height: 95vh !important;
-  }
-  
-  .mapbox-wrapper,
-  .map-wrapper {
-    flex: 1 1 65% !important;
-    min-height: 350px !important;
-    width: 100% !important;
-    position: relative !important;
-  }
-  
-  .sidebar,
-  .map_side-bar {
-    flex: 1 1 35% !important;
-    min-width: 100% !important;
-    width: 100% !important;
-    max-height: none !important;
-    border-left: none !important;
-    border-top: 3px solid var(--niko-primary) !important;
-  }
-  
-  .location-item-wrapper_sidebar,
-  [location-item-sidebar] {
-    padding: 16px 20px !important;
-  }
-  
-  .locations-map-card_item.is--show {
-    bottom: 16px !important;
-    right: 16px !important;
-    max-width: 300px !important;
-    min-width: 260px !important;
-  }
-}
-
-/* Mobile Portrait (320px - 480px) */
+/* 8. Responsive Styles */
 @media (max-width: 480px) {
-  #section-map {
-    min-height: 100vh !important;
-  }
-  
-  .map-component,
-  .map_componet {
-    flex-direction: column !important;
-    height: 100vh !important;
-  }
-  
-  .mapbox-wrapper,
-  .map-wrapper {
-    flex: 1 1 60% !important;
-    min-height: 300px !important;
-    width: 100% !important;
-    position: relative !important;
-  }
-  
-  .sidebar,
-  .map_side-bar {
-    flex: 1 1 40% !important;
-    min-width: 100% !important;
-    width: 100% !important;
-    max-height: none !important;
-    border-left: none !important;
-    border-top: 3px solid var(--niko-primary) !important;
-  }
-  
-  .location-item-wrapper_sidebar,
-  [location-item-sidebar] {
-    padding: 14px 16px !important;
-    font-size: 14px !important;
-  }
-  
-  .location-name_sidebar,
-  [location-name-sidebar] {
-    font-size: 15px !important;
-  }
-  
   .locations-map-card_item.is--show {
     bottom: 12px !important;
     right: 12px !important;
@@ -752,214 +278,4 @@
     min-width: auto !important;
     width: calc(100% - 24px) !important;
   }
-  
-  .locations-map-card_item h5 {
-    font-size: 18px !important;
-    padding-right: 50px !important;
-  }
-  
-  .locations-map-card_item p {
-    font-size: 14px !important;
-  }
 }
-
-/* =================================
-   ACCESSIBILITY & PERFORMANCE
-   ================================= */
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  .sidebar,
-  .map_side-bar {
-    scroll-behavior: auto !important;
-  }
-  
-  .location-item-wrapper_sidebar:hover,
-  .location-item-wrapper_sidebar.is--active,
-  [location-item-sidebar]:hover,
-  [location-item-sidebar].is--active {
-    transform: none !important;
-  }
-  
-  .locations-map-card_item.is--show:hover {
-    transform: none !important;
-  }
-  
-  .locations-map-card_close-block:hover {
-    transform: scale(1.05) !important;
-  }
-}
-
-/* High DPI Optimizations */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  #map {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-  }
-}
-
-/* Focus management for accessibility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Skip link for accessibility */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: var(--niko-primary);
-  color: var(--niko-white);
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: var(--niko-border-radius-small);
-  z-index: 10000;
-  font-weight: 600;
-  transition: all var(--niko-transition);
-}
-
-.skip-link:focus {
-  top: 6px;
-  box-shadow: var(--niko-shadow);
-}
-
-/* =================================
-   PERFORMANCE OPTIMIZATIONS
-   ================================= */
-
-/* GPU acceleration for better performance */
-.location-item-wrapper_sidebar,
-[location-item-sidebar],
-.locations-map-card_item,
-.locations-map-card_close-block {
-  will-change: transform;
-}
-
-/* Optimize transitions for 60fps */
-.location-item-wrapper_sidebar:hover,
-.location-item-wrapper_sidebar.is--active,
-[location-item-sidebar]:hover,
-[location-item-sidebar].is--active {
-  will-change: transform, background-color, border-color, box-shadow;
-}
-
-/* Optimize scroll performance */
-.sidebar,
-.map_side-bar {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Critical CSS for above-the-fold content */
-.map-component,
-.map_componet,
-#map {
-  content-visibility: auto;
-  contain-intrinsic-size: 600px;
-}
-
-/* Browser-specific optimizations */
-@supports (backdrop-filter: blur(10px)) {
-  .locations-map-card_item {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.95);
-  }
-}
-
-/* Fallback for older browsers */
-@supports not (backdrop-filter: blur(10px)) {
-  .locations-map-card_item {
-    background: var(--niko-white);
-  }
-}
-
-/* Force responsive behavior */
-.mapboxgl-map,
-.mapboxgl-canvas-container,
-.mapboxgl-canvas {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Print styles */
-@media print {
-  #section-map {
-    height: 400px !important;
-    min-height: 400px !important;
-  }
-  
-  .sidebar,
-  .map_side-bar {
-    display: none !important;
-  }
-  
-  .mapbox-wrapper,
-  .map-wrapper {
-    flex: 1 1 100% !important;
-  }
-  
-  .locations-map-card_item {
-    display: none !important;
-  }
-}
-
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --niko-primary: #6BB3B3;
-    --niko-primary-dark: #4A9B9B;
-    --niko-primary-light: #8BC5C5;
-    --niko-primary-ultra-light: rgba(107, 179, 179, 0.08);
-    --niko-secondary: #1a1a1a;
-    --niko-white: #1a1a1a;
-    --niko-grey-light: #2a2a2a;
-    --niko-grey: #3a3a3a;
-    --niko-grey-medium: #4a4a4a;
-    --niko-grey-dark: #cccccc;
-    --niko-text: #ffffff;
-    --niko-text-light: #cccccc;
-    --niko-text-muted: #999999;
-    --niko-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --niko-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.4);
-    --niko-shadow-active: 0 2px 10px rgba(107, 179, 179, 0.3);
-  }
-}
-
-/* =================================
-   DEBUGGING STYLES (for testing)
-   ================================= */
-
-/* Uncomment these during debugging to see element boundaries */
-/*
-.location-item-wrapper_sidebar.is--active,
-[location-item-sidebar].is--active {
-  border: 2px solid red !important;
-}
-
-.locations-map-card_item.is--show {
-  border: 3px solid green !important;
-}
-
-.map_locations-card_wrapper.niko-show {
-  border: 2px solid blue !important;
-}
-*/
-
-/* END OF FIXED CSS */
